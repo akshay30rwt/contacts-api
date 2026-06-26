@@ -15,13 +15,28 @@ app.get('/', (req, res) => {
 });
 
 app.get('/contacts', (req, res) => {
-    if(contacts.length === 0) {
-        return res.status(404).json({
-            message: 'There are no saved contacts'
-        });
+    const { name } = req.query;
+
+    if(!name) {
+        if(contacts.length === 0) {
+            return res.status(404).json({
+                message: 'There are no saved contacts'
+            });
+        }
+        return res.status(200).json(contacts);
     }
 
-    res.status(200).json(contacts);
+    const filteredContacts = contacts.filter(contact => 
+        contact.name.toLowerCase().includes(name.toLowerCase())
+    );
+
+    if(filteredContacts.length === 0) {
+        return res.status(404).json({
+            message: "No contacts found with this name"
+        });
+    }
+        
+    return res.status(200).json(filteredContacts);
 });
 
 app.post('/contacts', (req, res) => {
@@ -46,7 +61,7 @@ app.put('/contacts/:id', (req, res) => {
     const index = contacts.findIndex(contact => contact.id === contactId);
 
     if(index === -1) {
-        return req.status(404).json({
+        return res.status(404).json({
             message: `Contact with ID: ${contactId} not found`
         });
     }
